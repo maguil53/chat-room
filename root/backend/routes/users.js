@@ -4,9 +4,14 @@ const mongoUtil = require('../mongoUtil.js');
 const _db = mongoUtil.getDb();
 
 
-
-router.get('/', function (req, res) {
-    _db.collection('users').find().toArray(function (err, result) {
+/**
+ * Have this return only the username for now. Because we don't want to return
+ * the password too if the username exists (for obvious reasons).
+ * 
+ * For now this is fine bc we haven't implemented hashing.
+ */
+router.get('/:username', function (req, res) {
+    _db.collection('users').find({'username': req.params.username}).toArray(function (err, result) {
         if (err) throw err
 
         /**
@@ -14,6 +19,7 @@ router.get('/', function (req, res) {
          * Make React LoginComponent interact with this endpoint by
          * making HTTP requests with axios.
          */
+        // res.send(result);
         res.send(result);
     });
 });
