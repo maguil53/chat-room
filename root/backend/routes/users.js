@@ -3,7 +3,38 @@ const router = express.Router();
 const mongoUtil = require('../mongoUtil.js');
 const _db = mongoUtil.getDb();
 
+const bcrypt = require('bcrypt');
+// Cost Factor (AKA Time taken to calculate)
+// https://stackoverflow.com/questions/46693430/what-are-salt-rounds-and-how-are-salts-stored-in-bcrypt
+const saltRounds = 10;
 
+
+// Create user
+router.post('/register/:username/:password', function(req,res) {
+
+    // For now we'll assume each user created is unique
+    // Later, we need to check to make sure the username doesn't exists.
+
+
+    // Hash password
+    const plainPassword = req.params.password;
+    bcrypt.hash(plainPassword, saltRounds,
+        // Callback function called once hash is done.
+        function(err, hashedPassword) {
+            if (err) {
+                next(err);
+            }
+            else {
+                // Store user into database.
+                const newUser = {username: req.params.username, password: hashedPassword};
+                _db.collection("users").insertOne(newUser, function(err, result) {
+                    if(err) throw err;
+                    
+                    res.status(200).send("User Created");
+                });
+            }
+      });
+});
 /**
  * Have this return only the username for now. Because we don't want to return
  * the password too if the username exists (for obvious reasons).
@@ -34,15 +65,7 @@ router.post('/:username/:password', function (req, res) {
             res.send(true);
         } else {
             res.send(false);
-        }
-
-
-        /**
-         * To-Do
-         * Make React LoginComponent interact with this endpoint by
-         * making HTTP requests with axios.
-         */
-        
+        }      
     });
 });
 
