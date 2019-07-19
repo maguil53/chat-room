@@ -3,6 +3,7 @@ const router = express.Router();
 const mongoUtil = require('../mongoUtil.js');
 const _db = mongoUtil.getDb();
 
+
 const bcrypt = require('bcrypt');
 // Cost Factor (AKA Time taken to calculate)
 // https://stackoverflow.com/questions/46693430/what-are-salt-rounds-and-how-are-salts-stored-in-bcrypt
@@ -91,28 +92,28 @@ router.post('/:username/:password', function (req, res) {
                     expiresIn: "1h"
                 });
 
-                // ****Token is being created successfully...
-                // Not sure if it's being stored in cookies though....
-                console.log("Creating token:");
-                console.log(token);
+                // *Token is being created successfully...
+                // console.log("Creating token:");
+                // console.log(token);
 
 
-                // From Express Doc:
-                // All res.cookie() does is set the HTTP Set-Cookie header with the options provided
+                /**
+                 * From Express Doc:
+                 *      All res.cookie() does is set the HTTP Set-Cookie header 
+                 *      with the options provided.
+                 * 
+                 * When you tag a cookie with the HttpOnly flag, it tells the browser
+                 * that this particular cookie should only be accessed by the server.
+                 * This doesn't completely prevent XSS attacks, but it helps.
+                 */
                 res.cookie('token', token, {httpOnly: true}).sendStatus(200);
 
-
-                // res.cookie('token', token, {httpOnly: true});
-                // res.status(200).send("Token Created");
+                // Contains response from server
+                // including the 'Access-Control-Allow-Credentials' header which is set to true
+                // console.log(res);
             
             }
         });
-
-        // if(result[0].password === req.params.password) {
-        //     res.send(true);
-        // } else {
-        //     res.send(false);
-        // }      
     });
 });
 

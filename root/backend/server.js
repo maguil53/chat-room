@@ -13,6 +13,15 @@ const port = process.env.PORT || 5000;
 
 
 // Options object gives http://localhost:3000 access to create token without errors
+/**
+ * Without cors() option "credentials: true", our XMLHttpRequest to 
+ * http://localhost:5000/users/:username/:password will be BLOCKED.
+ * 
+ * Our value for the 'Access-Control-Allow-Credentials' response header 
+ * will be '' , and it needs to be "true" when the request (from our client-side)
+ * has its credentials mode to 'include' (I'm assuming they're talking about the fact
+ * that in our POST request w/ axios we set the option "withCredentials" to "true") 
+ */
 app.use(cors({
     origin: 'http://localhost:3000',
     credentials: true
@@ -33,10 +42,6 @@ mongoUtil.connectToServer(function(err, client) {
     });
 
     app.get('/home', withAuth, function(req, res) {
-        // We're never reaching this part because withAuth
-        // throws an error
-        console.log("req object...");
-        console.log(req);
         res.send('The password is potato');
     });
 
