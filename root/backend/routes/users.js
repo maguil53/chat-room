@@ -8,13 +8,18 @@ const bcrypt = require('bcrypt');
 // https://stackoverflow.com/questions/46693430/what-are-salt-rounds-and-how-are-salts-stored-in-bcrypt
 const saltRounds = 10;
 
+const jwt = require('jsonwebtoken');
+
+const cookieParser = require('cookie-parser');
+const app = express();
+app.use(cookieParser());
+
 /**
  * Create user
  * 
  * For now we'll assume each user created is unique.
  * Later, we need to check to make sure the username doesn't exists.
  */
-// Create user
 router.post('/register/:username/:password', function(req,res) {
     // Hash password
     const plainPassword = req.params.password;
@@ -37,12 +42,8 @@ router.post('/register/:username/:password', function(req,res) {
             }
       });
 });
-/**
- * Have this return only the username for now. Because we don't want to return
- * the password too if the username exists (for obvious reasons).
- * 
- * For now this is fine bc we haven't implemented hashing.
- */
+
+// User attempting to log in.
 router.post('/:username/:password', function (req, res) {
     _db.collection('users').find({'username': req.params.username}).toArray(function (err, result) {
         if (err) throw err
@@ -75,14 +76,35 @@ router.post('/:username/:password', function (req, res) {
                     error: 'Internal error please try again'
                 });
             } else if (!same){
-                console.log("Not the same!");
                 res.status(401)
                 .json({
                   error: 'Incorrect email or password'
                 });
             } else {
                 // Issue Token
-                console.log("Correct username and password! Here's your token!");
+                console.log("Correct username and password!");
+                const username = result[0].username
+
+                // Payload needs to be an object
+                const payload = { username };
+                const token = jwt.sign(payload, process.env.SECRET, {
+                    expiresIn: "1h"
+                });
+
+                // ****Token is being created successfully...
+                // Not sure if it's being stored in cookies though....
+                console.log("Creating token:");
+                console.log(token);
+
+
+                // From Express Doc:
+                // All res.cookie() does is set the HTTP Set-Cookie header with the options provided
+                res.cookie('token', token, {httpOnly: true}).sendStatus(200);
+
+
+                // res.cookie('token', token, {httpOnly: true});
+                // res.status(200).send("Token Created");
+            
             }
         });
 
