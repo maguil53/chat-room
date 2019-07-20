@@ -31,8 +31,6 @@ router.post('/register/:username/:password', function(req,res) {
                 next(err);
             }
             else {
-                console.log("Hashed Password before storing");
-                console.log(hashedPassword);
                 // Store user into database.
                 const newUser = {username: req.params.username, password: hashedPassword};
                 _db.collection("users").insertOne(newUser, function(err, result) {
@@ -58,62 +56,65 @@ router.post('/:username/:password', function (req, res) {
          */
         if(result.length === 0) {
             // User not found!
-            res.statusCode = 404;
-            return;
-        }
-        
-        /**
-         * username found, now check password.
-         * 
-         * Compare password that was sent by the user (1st arg)
-         * with the hashed password in the database (2nd arg)
-         */
-        console.log("Comparing...");
-        console.log(req.params.password);
-        bcrypt.compare(req.params.password, result[0].password, function(err, same) {
-            if (err) {
-                console.log(err);
-                res.status(500).json({
-                    error: 'Internal error please try again'
-                });
-            } else if (!same){
-                res.status(401)
-                .json({
-                  error: 'Incorrect email or password'
-                });
-            } else {
-                // Issue Token
-                console.log("Correct username and password!");
-                const username = result[0].username
-
-                // Payload needs to be an object
-                const payload = { username };
-                const token = jwt.sign(payload, process.env.SECRET, {
-                    expiresIn: "1h"
-                });
-
-                // *Token is being created successfully...
-                // console.log("Creating token:");
-                // console.log(token);
-
-
-                /**
-                 * From Express Doc:
-                 *      All res.cookie() does is set the HTTP Set-Cookie header 
-                 *      with the options provided.
-                 * 
-                 * When you tag a cookie with the HttpOnly flag, it tells the browser
-                 * that this particular cookie should only be accessed by the server.
-                 * This doesn't completely prevent XSS attacks, but it helps.
-                 */
-                res.cookie('token', token, {httpOnly: true}).sendStatus(200);
-
-                // Contains response from server
-                // including the 'Access-Control-Allow-Credentials' header which is set to true
-                // console.log(res);
+            res.status(401).json({
+                error: 'Incorrect email or password'
+            });
             
-            }
-        });
+        } else {
+
+            /**
+             * username found, now check password.
+             * 
+             * Compare password that was sent by the user (1st arg)
+             * with the hashed password in the database (2nd arg)
+             */
+            console.log("Comparing...");
+            console.log(req.params.password);
+            bcrypt.compare(req.params.password, result[0].password, function(err, same) {
+                if (err) {
+                    console.log(err);
+                    res.status(500).json({
+                        error: 'Internal error please try again'
+                    });
+                } else if (!same){
+                    res.status(401)
+                    .json({
+                    error: 'Incorrect email or password'
+                    });
+                } else {
+                    // Issue Token
+                    console.log("Correct username and password!");
+                    const username = result[0].username
+
+                    // Payload needs to be an object
+                    const payload = { username };
+                    const token = jwt.sign(payload, process.env.SECRET, {
+                        expiresIn: "1h"
+                    });
+
+                    // *Token is being created successfully...
+                    // console.log("Creating token:");
+                    // console.log(token);
+
+
+                    /**
+                     * From Express Doc:
+                     *      All res.cookie() does is set the HTTP Set-Cookie header 
+                     *      with the options provided.
+                     * 
+                     * When you tag a cookie with the HttpOnly flag, it tells the browser
+                     * that this particular cookie should only be accessed by the server.
+                     * This doesn't completely prevent XSS attacks, but it helps.
+                     */
+                    res.cookie('token', token, {httpOnly: true}).sendStatus(200);
+
+                    // Contains response from server
+                    // including the 'Access-Control-Allow-Credentials' header which is set to true
+                    // console.log(res);
+                
+                }
+            });
+        }
     });
 });
 

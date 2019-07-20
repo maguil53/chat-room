@@ -16,11 +16,15 @@ const port = process.env.PORT || 5000;
 /**
  * Without cors() option "credentials: true", our XMLHttpRequest to 
  * http://localhost:5000/users/:username/:password will be BLOCKED.
+ * (A XMLHttpRequest can be used to request data from a web server)
  * 
- * Our value for the 'Access-Control-Allow-Credentials' response header 
- * will be '' , and it needs to be "true" when the request (from our client-side)
- * has its credentials mode to 'include' (I'm assuming they're talking about the fact
- * that in our POST request w/ axios we set the option "withCredentials" to "true") 
+ * Error from Browser:
+ *  Our value for the 'Access-Control-Allow-Credentials' response header 
+ *  will be '' , and it needs to be "true" when the request (from our client-side)
+ *  has its credentials mode to 'include' ('include' is referring to our 'withCredentials'
+ *  option inside the Axios POST request that has been set to 'true'. Axios makes 
+ *  XMLHttpRequests (XHR) which I believe is different from the Fetch api, which
+ *  is probably why we don't see the 'include' option available in Axios).   
  */
 app.use(cors({
     origin: 'http://localhost:3000',
@@ -44,6 +48,11 @@ mongoUtil.connectToServer(function(err, client) {
     app.get('/home', withAuth, function(req, res) {
         res.send('The password is potato');
     });
+    
+    app.get('/checkToken', withAuth, function(req, res) {
+        res.sendStatus(200);
+      });
+      
 
     /*
         Need to import this router within connectToServer()
